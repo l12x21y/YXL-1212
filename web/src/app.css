@@ -1,0 +1,74 @@
+/* 编辑器外壳 —— 与纸面排版无关的界面样式 */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #e9e7e1;
+  color: #26231f;
+  font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app { display: flex; height: 100vh; }
+
+/* ── 左栏：控件 ── */
+aside {
+  width: 400px; flex: none;
+  overflow-y: auto;
+  background: #f4f2ed;
+  border-right: 1px solid #26231f1a;
+  padding: 22px 22px 28px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+aside header h1 {
+  font-size: 19px; font-weight: 400; letter-spacing: .14em;
+}
+aside header p { font-size: 12px; color: #26231f88; margin-top: 5px; letter-spacing: .04em; }
+
+section h2 {
+  font-size: 11px; font-weight: 400; letter-spacing: .22em; text-transform: uppercase;
+  color: #26231f66; margin-bottom: 9px;
+}
+section { display: flex; flex-direction: column; gap: 10px; }
+
+label { display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; color: #26231fcc; }
+input, textarea {
+  font-family: inherit; font-size: 13.5px; line-height: 1.7;
+  border: 1px solid #26231f2a; background: #fffdf8; color: #26231f;
+  padding: 8px 10px; resize: vertical; outline: none;
+}
+input:focus, textarea:focus { border-color: #26231f66; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button {
+  font-family: inherit; font-size: 12.5px; letter-spacing: .04em;
+  border: 1px solid #26231f2a; background: transparent; color: #26231f;
+  padding: 6px 12px; cursor: pointer;
+}
+.chips button:hover { background: #26231f11; }
+.chips button.on { background: #26231f; color: #f4f2ed; border-color: #26231f; }
+
+.theme-chip { display: inline-flex; align-items: center; gap: 7px; }
+.theme-chip i {
+  width: 18px; height: 18px; display: inline-flex; align-items: flex-end;
+  border: 1px solid #26231f33; overflow: hidden;
+}
+.theme-chip i b { display: block; width: 100%; height: 5px; }
+
+footer { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
+button.dl {
+  font-family: inherit; font-size: 14px; letter-spacing: .06em;
+  background: #26231f; color: #f4f2ed; border: none;
+  padding: 13px 16px; cursor: pointer;
+}
+button.dl:hover { background: #3a362e; }
+button.dl:disabled { opacity: .55; cursor: wait; }
+.tip { font-size: 11.5px; line-height: 1.9; color: #26231f77; letter-spacing: .03em; }
+
+/* ── 右栏：预览 ── */
+main {
+  flex: 1; overflow: auto;
+  display: flex; justify-content: center; align-items: flex-start;
+  padding: 34px;
+}
+.stage { box-shadow: 0 18px 60px #26231f2e; }

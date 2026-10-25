@@ -73,6 +73,20 @@ python tools/annotate.py build "content/<文章>/<章节>.json"
 python tools/annotate.py apply "content/<文章>/<章节>.json" marks.json --render
 ```
 
+## 网页版（MVP）
+
+不想装 Python 也可以直接在浏览器里排版：粘贴文字 → 选版式/配色 → 划重点（强调语法）→ 下载 PNG。
+
+```bash
+cd web
+npm install
+# 字体：把 Noto Serif SC / Noto Sans SC 可变字体（TTF）放进 web/public/fonts/
+npm run dev        # 开发预览 → http://localhost:5173
+npm run build      # 产物在 web/dist/，可静态托管（Netlify / Vercel / GitHub Pages）
+```
+
+排版引擎是 `render.py` 七种版式的 TypeScript 1:1 移植（`web/src/plate.ts`），输出相同 DOM、套同一份 `system.css`；导出用 `html-to-image`（SVG foreignObject，浏览器原生渲染，与本地 Chrome 截图保真一致）。
+
 ## 使用
 
 ```bash
@@ -98,6 +112,7 @@ content/                # template.json（字段模板）、demo.json（示例�
 tools/annotate.py       # 标注页：选配色组 + 划线标记 → apply 一次写回并出图
 tools/palette.py        # 主题色卡：调色→对比度实时检查→写回 CSS
 tools/swatch.py         # 五主题色卡总览图
+web/                    # 网页版 MVP（React + Vite，纯前端，见上）
 examples/               # 上面的风格示例图（ivory）+ 主题色卡
 SKILL.md                # 完整使用说明 + 全部踩坑记录
 ```
