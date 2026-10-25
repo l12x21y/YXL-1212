@@ -16,28 +16,30 @@ aside {
   overflow-y: auto;
   background: #f4f2ed;
   border-right: 1px solid #26231f1a;
-  padding: 22px 22px 28px;
-  display: flex; flex-direction: column; gap: 20px;
+  padding: 20px 20px 26px;
+  display: flex; flex-direction: column; gap: 18px;
 }
-aside header h1 {
-  font-size: 19px; font-weight: 400; letter-spacing: .14em;
-}
+aside header h1 { font-size: 19px; font-weight: 400; letter-spacing: .14em; }
 aside header p { font-size: 12px; color: #26231f88; margin-top: 5px; letter-spacing: .04em; }
 
+section { display: flex; flex-direction: column; gap: 9px; }
 section h2 {
   font-size: 11px; font-weight: 400; letter-spacing: .22em; text-transform: uppercase;
-  color: #26231f66; margin-bottom: 9px;
+  color: #26231f66; margin-bottom: 4px;
 }
-section { display: flex; flex-direction: column; gap: 10px; }
-
-label { display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; color: #26231fcc; }
+label { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: #26231fcc; }
 input, textarea {
   font-family: inherit; font-size: 13.5px; line-height: 1.7;
   border: 1px solid #26231f2a; background: #fffdf8; color: #26231f;
-  padding: 8px 10px; resize: vertical; outline: none;
+  padding: 7px 10px; resize: vertical; outline: none;
 }
 input:focus, textarea:focus { border-color: #26231f66; }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+/* 系列/日期/页码：系列最宽，日期次之，页码最窄 */
+.row-imp { display: grid; grid-template-columns: 1.7fr 1.1fr 0.9fr; gap: 8px; }
+.row-imp input { padding: 7px 8px; }
+.colors input { padding: 2px; height: 30px; cursor: pointer; }
 
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chips button {
@@ -55,20 +57,93 @@ input:focus, textarea:focus { border-color: #26231f66; }
 }
 .theme-chip i b { display: block; width: 100%; height: 5px; }
 
-footer { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
+button.ghost {
+  font-family: inherit; font-size: 13px; letter-spacing: .05em;
+  border: 1px solid #26231f44; background: transparent; color: #26231f;
+  padding: 9px 12px; cursor: pointer;
+}
+button.ghost:hover { background: #26231f11; }
+
+footer { margin-top: auto; display: flex; flex-direction: column; gap: 9px; }
 button.dl {
   font-family: inherit; font-size: 14px; letter-spacing: .06em;
   background: #26231f; color: #f4f2ed; border: none;
-  padding: 13px 16px; cursor: pointer;
+  padding: 12px 16px; cursor: pointer;
 }
 button.dl:hover { background: #3a362e; }
 button.dl:disabled { opacity: .55; cursor: wait; }
+button.dl.sub { background: transparent; color: #26231f; border: 1px solid #26231f44; }
+button.dl.sub:hover { background: #26231f11; }
 .tip { font-size: 11.5px; line-height: 1.9; color: #26231f77; letter-spacing: .03em; }
 
-/* ── 右栏：预览 ── */
+/* ── 右区：顶栏 + 预览 ── */
+.right { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+.topbar {
+  display: flex; align-items: center; gap: 16px;
+  padding: 12px 20px;
+  border-bottom: 1px solid #26231f1a;
+  background: #efece6;
+}
+.vt { display: flex; flex: none; }
+.vt button {
+  font-family: inherit; font-size: 12.5px; padding: 7px 14px; cursor: pointer;
+  border: 1px solid #26231f2a; background: transparent; color: #26231f;
+}
+.vt button.on { background: #26231f; color: #f4f2ed; border-color: #26231f; }
+
+.pills { display: flex; gap: 5px; flex-wrap: nowrap; overflow-x: auto; flex: 1; }
+.pills button {
+  font-family: Consolas, monospace; font-size: 12px; flex: none;
+  padding: 6px 10px; cursor: pointer;
+  border: 1px solid #26231f2a; background: transparent; color: #26231f66;
+}
+.pills button.on { background: #26231f; color: #f4f2ed; border-color: #26231f; }
+.pills button.add { color: #26231f; }
+
+.pgops { display: flex; gap: 5px; flex: none; }
+.pgops button {
+  font-size: 12px; padding: 6px 9px; cursor: pointer;
+  border: 1px solid #26231f2a; background: transparent; color: #26231f;
+}
+.pgops button:hover { background: #26231f; color: #f4f2ed; }
+
 main {
   flex: 1; overflow: auto;
   display: flex; justify-content: center; align-items: flex-start;
-  padding: 34px;
+  padding: 30px;
 }
 .stage { box-shadow: 0 18px 60px #26231f2e; }
+
+/* 系列总览 */
+main.gallery {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 26px 20px; align-content: start; justify-items: center;
+}
+figure.thumb { cursor: pointer; margin: 0; }
+figure.thumb:hover figcaption b { background: #26231f; color: #f4f2ed; }
+.tstage { box-shadow: 0 8px 28px #26231f30; overflow: hidden; }
+figcaption {
+  margin-top: 9px; display: flex; align-items: center; gap: 7px;
+  font-size: 11.5px; letter-spacing: .06em; color: #26231f99;
+}
+figcaption b {
+  font-family: Consolas, monospace; font-size: 11px; padding: 2px 6px;
+  background: transparent; border: 1px solid #26231f44;
+}
+
+/* 划选标注条（固定定位，跟选区走） */
+.pop {
+  position: fixed; z-index: 90; transform: translateY(-100%);
+  display: flex; align-items: stretch;
+  background: #26231f; padding: 4px; gap: 2px;
+  box-shadow: 0 6px 24px #26231f55;
+}
+.pop button {
+  font-family: inherit; font-size: 12.5px; letter-spacing: .05em;
+  border: none; background: transparent; color: #f4f2ed;
+  padding: 7px 10px; cursor: pointer; white-space: nowrap;
+}
+.pop button:hover, .pop button.on { background: #c0392b; }
+.pop .sep { width: 1px; background: #f4f2ed44; margin: 2px 3px; }
+.pop .clr { color: #f4f2edaa; }

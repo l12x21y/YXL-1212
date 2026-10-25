@@ -68,6 +68,43 @@ const plain = (s: string) => s.replace(/==|\*\*|\*|!!|\^\^|\[\[|\]\]/g, "");
 
 const folio = (i: number) => String(i).padStart(2, "0");
 
+// ────────────────── 划线标注（annotate.py 的 wrap/apply 移植） ──────────────────
+export type Mark = { start: number; end: number; effects: string[] };
+
+const TOKENS: Record<string, [string, string]> = {
+  pull: ["@@", "@@"], line: ["[[", "]]"], block: ["==", "=="], bold: ["!!", "!!"],
+  big: ["^^", "^^"], accent: ["*", "*"], dim: ["<~", "~>"],
+};
+export const EFFECTS: { id: string; label: string }[] = [
+  { id: "accent", label: "染色" }, { id: "big", label: "放大" }, { id: "bold", label: "加重" },
+  { id: "block", label: "底框" }, { id: "line", label: "整行" }, { id: "pull", label: "大字" },
+  { id: "dim", label: "压灰" },
+];
+const EFFECT_ORDER = ["pull", "line", "block", "bold", "big", "accent", "dim"];   // 外 → 内
+
+export function wrap(seg: string, effects: string[]): string {
+  let s = seg;
+  for (const e of [...EFFECT_ORDER].reverse()) {
+    if (effects.includes(e)) {
+      const [l, r] = TOKENS[e];
+      s = l + s + r;
+    }
+  }
+  return s;
+}
+
+export function applyMarks(plain: string, marks: Mark[]): string {
+  const spans = [...marks].sort((a, b) => a.start - b.start);
+  let out = "", cur = 0, n = 0;
+  for (const m of spans) {
+    if (m.start < cur || m.end > plain.length) continue;
+    out += plain.slice(cur, m.start) + wrap(plain.slice(m.start, m.end), m.effects);
+    cur = m.end; n++;
+  }
+  out += plain.slice(cur);
+  return out;
+}
+
 function colophon(p: Page, i: number, meta: Meta): string {
   const items = p.colophon ?? [
     `${meta.series ?? "YXL / 1212"} · ${meta.issue ?? ""}`.replace(/^·+|·+$/g, "").trim(),
@@ -136,11 +173,12 @@ function l_quote(p: Page, i: number, meta: Meta): string {
   const bodyCls = sign ? "quote-body" : "quote-body no-sign";
   const raw = Array.isArray(p.text) ? p.text.join("") : p.text ?? "";
   const bar = raw.includes("==") ? "" : '<div class="bar-accent"></div>';
+  const mk = p._quoteUid ? ` data-mk="${p._quoteUid}"` : "";
   return `<div class="frame">
       ${topbar(p, meta)}
       <div class="${bodyCls}">
         ${bar}
-        <blockquote class="t-d2">${lines(p.text ?? "")}</blockquote>
+        <blockquote class="t-d2"${mk}>${lines(p.text ?? "")}</blockquote>
       </div>${signHtml}
       ${colophon(p, i, meta)}
     </div>`;
@@ -164,7 +202,10 @@ function l_list(p: Page, i: number, meta: Meta): string {
 }
 
 function l_essay(p: Page, i: number, meta: Meta): string {
-  const body = (p.paragraphs ?? []).map((x: string) => `<p class="t-body">${lines(x)}</p>`).join("");
+  const uids: string[] | undefined = p._paraUids;
+  const body = (p.paragraphs ?? [])
+    .map((x: string, j: number) => `<p class="t-body"${uids ? ` data-mk="${uids[j]}"` : ""}>${lines(x)}</p>`)
+    .join("");
   const sign = p.sign ?? "";
   const signHtml = sign ? `<div class="sign"><p class="t-small">${e(sign)}</p></div>` : "";
   return `<div class="frame">
