@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "series": "YXL / 1212",
+    "issue": "PLATE 02",
+    "date": "2026 · 冬",
+    "theme": "ivory"
+  },
+  "pages": [
+    {
+      "layout": "cover",
+      "kicker": "换掉这里 / 01",
+      "running_head": "PLATE 02",
+      "title": ["第一行", "第二行，", "第三行"],
+      "subtitle": "一句中文副标，不超过两行。",
+      "subtitle_en": "An italic latin line for counterpoint.",
+      "colophon": ["YXL / 1212", "2026 · 冬", "P.01"]
+    },
+    {
+      "layout": "statement",
+      "kicker": "STATEMENT",
+      "text": "一句可以竖着读的话。",
+      "note": "左下角的微注。解释这句话的来源，或者什么都不说。",
+      "colophon": ["YXL / 1212", "竖排", "P.02"]
+    },
+    {
+      "layout": "quote",
+      "kicker": "QUOTE / 其一",
+      "text": ["引文第一行，", "引文第二行。"],
+      "sign": "— 出处或署名",
+      "colophon": ["YXL / 1212", "引文", "P.03"]
+    },
+    {
+      "layout": "list",
+      "kicker": "LIST",
+      "title": ["列表标题"],
+      "lead": "一句总起，说明这份列表在讲什么。",
+      "items": [
+        { "t": "第一条", "d": "一行说明，不超过两行。" },
+        { "t": "第二条", "d": "一行说明，不超过两行。" },
+        { "t": "第三条", "d": "一行说明，不超过两行。" }
+      ],
+      "colophon": ["YXL / 1212", "条目", "P.04"]
+    },
+    {
+      "layout": "essay",
+      "kicker": "NOTE / 01",
+      "label": "札记",
+      "title": ["正标题，一句话说清"],
+      "paragraphs": [
+        "正文第一段。中文排版用首行缩进两字，不用段间距。每行控制在 35 字上下，读起来才不累。",
+        "正文第二段。想强调的句子单独成段，一段只放一句话。",
+        "正文第三段。全文控制在六百字内，超过就该分页。"
+      ],
+      "sign": "2026 · 冬",
+      "colophon": ["YXL / 1212", "正文", "P.05"]
+    },
+    {
+      "layout": "index",
+      "kicker": "INDEX",
+      "title": ["目录标题"],
+      "note": "右上角一行微注",
+      "items": [
+        { "t": "条目名称", "pg": "P.01" },
+        { "t": "条目名称", "pg": "P.02" },
+        { "t": "条目名称", "pg": "P.03" },
+        { "t": "条目名称", "pg": "P.04" },
+        { "t": "条目名称", "pg": "P.05" },
+        { "t": "条目名称", "pg": "P.06" }
+      ],
+      "colophon": ["YXL / 1212", "目录", "P.06"]
+    },
+    {
+      "layout": "split",
+      "theme": "night",
+      "kicker": "COLOPHON",
+      "side": "PLATE 02",
+      "figure": ["3:4"],
+      "figure_caption": "1800 × 2400 PX",
+      "title": ["收束的一句话。"],
+      "lead": "引子，一句话。",
+      "paragraphs": ["正文一段，交代这套图到此结束，以及下一辑会是什么。"],
+      "colophon": ["YXL / 1212", "2026 · 冬", "P.07"]
+    }
+  ]
+}

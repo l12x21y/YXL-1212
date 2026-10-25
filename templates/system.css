@@ -1,0 +1,414 @@
+/* ══════════════════════════════════════════════════════════════
+   YXL/1212 — 3:4 纸面排版系统  system.css
+   画布 1800×2400 · 版心 1500×2100 · 单一强调色 · 零 AI 生图
+   ══════════════════════════════════════════════════════════════ */
+
+/* ---------- 字体（可变字重，只保留 200/300 两档审美） ---------- */
+@font-face {
+  font-family: "ZSerif";
+  src: url("../assets/NotoSerifSC-VF.ttf") format("truetype-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: "ZSans";
+  src: url("../assets/NotoSansSC-VF.ttf") format("truetype-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: block;
+}
+
+:root {
+  /* 画布 */
+  --W: 1800px;
+  --H: 2400px;
+  --pad: 150px;          /* 版心内缩 */
+  --gutter: 36px;
+
+  /* 字号阶梯 —— 相邻比约 1.35，最大档与最小档比 8.2:1 */
+  --t-display: 180px;
+  --t-d2: 124px;
+  --t-h1: 82px;
+  --t-h2: 56px;
+  --t-lead: 42px;
+  --t-body: 38px;
+  --t-small: 30px;
+  --t-meta: 26px;
+  --t-micro: 22px;
+
+  /* 字体族 */
+  --serif: "ZSerif", Georgia, "Songti SC", SimSun, serif;
+  --sans: "ZSans", "Helvetica Neue", Arial, "Microsoft YaHei", sans-serif;
+  --mono: Consolas, "SF Mono", "Menlo", monospace;
+}
+
+/* ---------- 五套主题：纸 + 墨 + 唯一强调色 ---------- */
+.theme-ivory {            /* 米纸 · 克莱因蓝 */
+  --paper: #f2efe7; --ink: #17160f;
+  --ink-2: rgba(23, 22, 15, .60); --ink-3: rgba(23, 22, 15, .34);
+  --hair: rgba(23, 22, 15, .16);
+  --accent: #1b2ac6;
+  --glow: rgba(255, 255, 255, .55); --shade: rgba(60, 50, 30, .07);
+  --grain-blend: multiply;
+}
+.theme-bone {            /* 骨白 · 番茄红 */
+  --paper: #efeeea; --ink: #14161a;
+  --ink-2: rgba(20, 22, 26, .60); --ink-3: rgba(20, 22, 26, .34);
+  --hair: rgba(20, 22, 26, .15);
+  --accent: #d93b22;
+  --glow: rgba(255, 255, 255, .5); --shade: rgba(20, 25, 40, .07);
+  --grain-blend: multiply;
+}
+.theme-kraft {            /* 淡牛皮 · 赭橘 */
+  --paper: #e7dcc7; --ink: #2b2113;
+  --ink-2: rgba(43, 33, 19, .62); --ink-3: rgba(43, 33, 19, .36);
+  --hair: rgba(43, 33, 19, .18);
+  --accent: #bf4218;
+  --glow: rgba(255, 250, 235, .5); --shade: rgba(70, 50, 20, .09);
+  --grain-blend: multiply;
+}
+.theme-slate {            /* 冷灰 · 洋红 */
+  --paper: #e8e9e5; --ink: #101216;
+  --ink-2: rgba(16, 18, 22, .58); --ink-3: rgba(16, 18, 22, .32);
+  --hair: rgba(16, 18, 22, .15);
+  --accent: #c3216b;
+  --glow: rgba(255, 255, 255, .45); --shade: rgba(20, 24, 30, .07);
+  --grain-blend: multiply;
+}
+.theme-night {            /* 墨夜 · 朱砂（反白） */
+  --paper: #15150f; --ink: #edeae1;
+  --ink-2: rgba(237, 234, 225, .58); --ink-3: rgba(237, 234, 225, .30);
+  --hair: rgba(237, 234, 225, .20);
+  --accent: #e4543a;
+  --glow: rgba(255, 245, 225, .07); --shade: rgba(0, 0, 0, .45);
+  --grain-blend: screen;
+}
+
+/* ---------- 重置 ---------- */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { background: #55554f; }
+body { -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision; }
+em { font-style: normal; }
+
+/* ---------- 纸面 ---------- */
+.plate {
+  position: relative;
+  width: var(--W);
+  height: var(--H);
+  overflow: hidden;
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-weight: 300;
+  /* 中文要严格全角排布：palt / proportional-width 会压窄标点，句读之间出现假空隙 */
+  font-feature-settings: "kern" 1;
+}
+/* 光照：单一方向的柔和纸面明暗 */
+.plate::before {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(130% 85% at 12% -12%, var(--glow), transparent 58%),
+    radial-gradient(110% 75% at 96% 106%, var(--shade), transparent 62%);
+  box-shadow: inset 0 0 300px var(--shade);
+  pointer-events: none;
+}
+/* 颗粒：扫描噪声，靠混合模式融进纸里 */
+.plate::after {
+  content: "";
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.62' numOctaves='4' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='300' height='300' filter='url(%23g)'/></svg>");
+  background-size: 300px 300px;
+  opacity: .19;
+  mix-blend-mode: var(--grain-blend);
+  pointer-events: none;
+}
+
+/* 内容层 */
+.frame {
+  position: relative;
+  z-index: 2;
+  width: 100%; height: 100%;
+  padding: var(--pad);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ══════════ 通用元件 ══════════ */
+
+/* 天头 / 地脚 */
+.meta {
+  font-family: var(--mono), var(--sans);   /* 拉丁走等宽，中文落到思源黑体，避免被等宽宋体挤瘦 */
+  font-size: var(--t-meta);
+  font-weight: 400;
+  letter-spacing: .20em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.meta-top { display: flex; justify-content: space-between; align-items: baseline; }
+/* 封面页眉承担「系列 · 第几章」，比普通页眉要读得到 */
+.layout-cover .meta-top { color: var(--ink-2); }
+.colophon {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding-top: 24px;
+  border-top: 1px solid var(--hair);
+}
+
+/* 强调色元件：一页只出现一处 */
+.rule-accent { width: 260px; height: 12px; background: var(--accent); }
+.rule-ink { width: 260px; height: 2px; background: var(--ink); opacity: .55; }
+.block-accent { width: 190px; height: 190px; background: var(--accent); }
+.bar-accent { width: 18px; height: 400px; background: var(--accent); }
+.dot-accent { width: 56px; height: 56px; background: var(--accent); }
+
+/* 文字即色彩：标题里某个字承担强调色 */
+.ac { color: var(--accent); }
+
+/* ── 色块语法：重点内容由色块承载，一页只此一处 ── */
+/* 反白块：实心强调色 + 纸色字。用在标题行、引文句上最有分量 */
+/* 块里再叠放大时字号要降档：76px 的字塞不进 78px 行盒，会被挤出正文单独成行 */
+.inv .big { font-size: 1.5em; }
+/* 块里有放大字时上下补 padding：.02em 只有 0.76px，大字顶部会直接贴上边框。
+   上下不对称（上多下少）是因为 .big 的 line-height:1 让字在行盒里偏上，实测补差 7px */
+.inv.inv-big { padding: .39em .15em .23em; }
+.inv {
+  background: var(--accent);
+  color: var(--paper);
+  padding: .02em .15em .05em;
+  margin: 0 -.02em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+/* 放大强调：不换色，只靠字号跳两级。line-height 必须给 1 才不撑行。
+   2em = 76px，正好塞进 .t-body 的 78.28px 行盒（38×2.06），所以行距不会被打乱 */
+.big {
+  font-size: 2em;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -.01em;
+}
+/* 硬换行/提行之后的续行：空两格，与提行左端对齐 */
+.ind { padding-left: 2em; }
+/* 段首的反白块：抵消块内左 padding，让块里的字和下一行严格对齐 */
+.t-body > .inv:first-child { margin-left: -.15em; }
+/* 压灰：比正文更退一步，用在"这句是自嘲/旁白，别当真"的地方。
+   ink-2 = 正文六成浓度，仍可读但明显不在前台 */
+.dim { color: var(--ink-2); }
+/* 加重：系统默认只有 200/300，这一档留给用户硬要求的情况 */
+.wt { font-weight: 500; letter-spacing: .01em; }
+/* 叠加时的例外：反白块里的染色字要变回纸色，否则红底红字看不见 */
+.inv .ac { color: var(--paper); }
+/* 关键句单独占一行：跳出正文灰面，像一句插话
+   1.45em × 1.42 ≈ 与正文行高（38×2.06=78px）等值，所以只跳字号、不撑行距 */
+.line {
+  display: block;
+  font-size: 1.34em;
+  line-height: 1.50;
+  margin: 1.05em 0 .05em 1.49em;  /* 左缩进对齐正文首行缩进：1.49em × 1.34 ≈ 2em */
+  text-indent: 0;
+  letter-spacing: .015em;
+  text-wrap: balance;      /* 长句折行时均分两行，避免只剩「吗？」孤零零一行 */
+}
+
+/* 大字句：比提行再大两档（100px），独立成块、换强调色，前后留白最大。
+   用在整页最想让人停一下的那句上，一页最多一处 */
+.pull {
+  display: block;
+  font-size: 100px;
+  font-weight: 200;
+  line-height: 1.14;
+  letter-spacing: .03em;
+  margin: 92px 0 68px 76px;   /* 左缩进 76px = 正文 2em 首行缩进 */
+  color: var(--accent);
+  text-indent: 0;
+  text-wrap: balance;
+}
+
+/* 超大页码（印刷物的呼吸器）—— 只用在留白足够的版式上 */
+.folio {
+  position: absolute; z-index: 1;
+  right: 88px; bottom: 202px;
+  font-family: var(--mono);
+  font-size: 240px;
+  font-weight: 200;
+  line-height: .78;
+  letter-spacing: -.03em;
+  color: var(--ink);
+  opacity: .055;
+  pointer-events: none;
+}
+/* 内容铺满的版式不放大数字，避免压字 */
+.layout-list .folio,
+.layout-index .folio,
+.layout-essay .folio,
+.layout-split .folio { display: none; }
+
+/* 文字基元 */
+.t-display { font-size: var(--t-display); font-weight: 200; line-height: 1.26; letter-spacing: .01em; }
+.t-d2      { font-size: var(--t-d2);      font-weight: 200; line-height: 1.52; letter-spacing: .02em; }
+.t-h1      { font-size: var(--t-h1);      font-weight: 300; line-height: 1.42; letter-spacing: .02em; }
+.t-h2      { font-size: var(--t-h2);      font-weight: 400; line-height: 1.5;  letter-spacing: .03em; }
+.t-lead    { font-size: var(--t-lead);    font-weight: 300; line-height: 1.72; letter-spacing: .02em; color: var(--ink-2); }
+.t-body    { font-size: var(--t-body);    font-weight: 300; line-height: 2.06; letter-spacing: .035em;
+             text-wrap: pretty; }
+.t-small   { font-size: var(--t-small);   font-weight: 300; line-height: 1.78; letter-spacing: .035em; color: var(--ink-2); }
+.t-micro   { font-size: var(--t-micro);   font-weight: 300; line-height: 1.78; letter-spacing: .06em; color: var(--ink-3); }
+.latin     { font-family: var(--serif); font-style: italic; letter-spacing: .01em; }
+.spacer    { flex: 1 1 auto; }
+
+/* ══════════ L1 · cover 封面 ══════════ */
+.layout-cover .title-wrap { margin-top: 250px; }
+/* 反白块的高度由字体度量决定，比默认行距还高；这里给标题放宽行距免得压上一行 */
+.layout-cover .t-display { line-height: 1.44; }
+.layout-cover .rule-ink, .layout-cover .rule-accent { margin-bottom: 62px; }
+.layout-cover .t-display { max-width: 1420px; }
+.layout-cover .sub {
+  margin-top: 138px;
+  max-width: 1120px;
+  display: flex; gap: 32px; align-items: flex-start;
+}
+/* 副标是封面第二句话，不是注释：给到 60px，别掉回小字 */
+.layout-cover .sub .t-lead { font-size: 60px; line-height: 1.52; letter-spacing: .04em; }
+.layout-cover .sub .bar { width: 1px; background: var(--hair); align-self: stretch; min-height: 0; margin-top: 12px; margin-bottom: 8px; }
+/* 封面只有一条发丝线：colophon 自己那条。副标下沉后不再需要中缝分隔 */
+.layout-cover .colophon { margin-top: auto; }
+
+/* ══════════ L2 · statement 竖排宣言 ══════════ */
+.layout-statement .meta-top { position: absolute; left: var(--pad); right: var(--pad); top: var(--pad); }
+/* 横排前缀（statement 专用）：拉丁串从竖排里提出来，放竖排块正上方、右对齐，
+   和封面的大字同一个字号级，读序 = 横排 → 竖排第一列 → 往左各列 */
+.layout-statement .pre {
+  position: absolute;
+  top: 200px; right: var(--pad);
+  font-size: 120px; line-height: 1; font-weight: 200;
+  letter-spacing: .01em; color: var(--ink);
+}
+/* 有前缀时竖排整体下移，给横排让位；竖排高约 1350px，从 430 起不会压到地脚 */
+.layout-statement .pre + .vertical { top: 430px; }
+.layout-statement .vertical {
+  position: absolute;
+  top: 224px; right: var(--pad);
+  writing-mode: vertical-rl;
+  /* 不用 upright：那样标点会被强制居中。列宽由 line-height 决定 */
+  text-orientation: mixed;
+  font-weight: 200;
+  line-height: 1.5;
+  letter-spacing: .045em;
+}
+.layout-statement .vertical p { margin: 0; }
+.layout-statement .aside {
+  position: absolute;
+  left: var(--pad); bottom: 372px;
+  width: 560px;
+  display: flex; flex-direction: column; gap: 42px;
+}
+.layout-statement .aside .t-micro {
+  font-size: 26px; line-height: 1.95; letter-spacing: .04em; color: var(--ink-2);
+}
+.layout-statement .colophon {
+  position: absolute; left: var(--pad); right: var(--pad); bottom: var(--pad);
+}
+
+/* ══════════ L3 · quote 大引文（整组垂直居中） ══════════ */
+.layout-quote .quote-body { margin-top: auto; display: flex; gap: 72px; }
+/* 无署名：上下各吃一半余白，大字位置基本维持原处，而不是贴到页脚 */
+.layout-quote .quote-body.no-sign { margin-bottom: auto; }
+.layout-quote .quote-body .bar-accent {
+  flex: none; align-self: stretch; height: auto;
+  margin: 14px 0 14px 0;
+}
+.layout-quote .t-d2 { font-weight: 200; line-height: 1.62; letter-spacing: .04em; }
+/* 引文页的反白块左右各外扩半格，让块里的字和上下行严格左对齐 */
+.layout-quote .inv { margin: 0 -.15em; }
+.layout-quote .sign { margin-top: 104px; margin-bottom: auto; display: flex; align-items: center; gap: 34px; }
+.layout-quote .sign .line { width: 150px; height: 1px; background: var(--ink-3); }
+
+/* ══════════ L4 · list 条目（紧凑成组，整组居中） ══════════ */
+.layout-list .head { margin-top: auto; }
+.layout-list .head .t-h1 { margin-bottom: 30px; }
+.layout-list .items {
+  margin-top: 72px; margin-bottom: auto;
+  flex: 0 0 auto;
+  display: flex; flex-direction: column;
+}
+.layout-list .item {
+  display: grid;
+  grid-template-columns: 132px 1fr;
+  gap: 0 44px;
+  align-content: center;
+  padding: 60px 0;
+  border-top: 1px solid var(--hair);
+}
+.layout-list .item:last-child { border-bottom: 1px solid var(--hair); }
+.layout-list .n {
+  width: 78px; height: 78px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--accent);
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 31px;
+  font-weight: 400;
+  letter-spacing: .02em;
+  align-self: center;
+}
+.layout-list .item .t-h2 { margin-bottom: 18px; }
+.layout-list .item .t-small { max-width: 1160px; }
+
+/* ══════════ L5 · essay 正文（整块垂直居中） ══════════ */
+.layout-essay .main { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.layout-essay .head { margin-bottom: 92px; padding-bottom: 50px;
+                       border-bottom: 1px solid var(--hair); }
+.layout-essay .head .label { font-family: var(--mono); font-size: var(--t-meta); letter-spacing: .28em; color: var(--accent); }
+.layout-essay .head .t-h1 { font-size: 100px; line-height: 1.36; max-width: 1300px; margin-top: 34px; }
+/* 标题整句反白时再跳一档（100 → 120px），块才有"标题牌"的分量 */
+.layout-essay .head .t-h1 .inv { font-size: 1.2em; letter-spacing: .01em; }
+.layout-essay .body { max-width: 1330px; }
+.layout-essay .body .t-body { text-indent: 2em; }
+.layout-essay .body .t-body + .t-body { margin-top: 16px; }
+.layout-essay .sign { margin-bottom: 34px; display: flex; justify-content: flex-end; }
+
+/* ══════════ L6 · index 目录（行高均分） ══════════ */
+.layout-index .head { margin-top: 96px; display: flex; justify-content: space-between; align-items: flex-end; }
+.layout-index .head .t-micro { padding-bottom: 14px; }
+.layout-index .rows { margin-top: 72px; margin-bottom: 24px; flex: 1; display: flex; flex-direction: column; }
+.layout-index .row {
+  display: grid;
+  grid-template-columns: 116px 1fr auto;
+  align-items: center;
+  gap: 40px;
+  flex: 1 1 0;
+  border-top: 1px solid var(--hair);
+}
+.layout-index .row:last-child { border-bottom: 1px solid var(--hair); }
+.layout-index .row .n { font-family: var(--mono); font-size: var(--t-small); color: var(--accent); letter-spacing: .06em; }
+.layout-index .row .t { font-size: 46px; font-weight: 300; letter-spacing: .04em; color: var(--ink); }
+.layout-index .row .pg { font-family: var(--mono); font-size: var(--t-meta); color: var(--ink-3); letter-spacing: .1em; }
+
+/* ══════════ L7 · split 上下分块（墨色块 + 强调色数字） ══════════ */
+.layout-split .frame { padding: 0; }
+.layout-split .top {
+  height: 980px;
+  background: var(--ink);
+  color: var(--paper);
+  padding: var(--pad);
+  display: flex; flex-direction: column; justify-content: space-between;
+}
+.layout-split .top .meta { color: var(--paper); opacity: .62; }
+.layout-split .top .figure {
+  font-family: var(--mono);
+  font-size: 230px;
+  font-weight: 200;
+  line-height: .86;
+  letter-spacing: -.03em;
+  color: var(--accent);
+}
+.layout-split .bottom {
+  height: 1420px;
+  padding: var(--pad);
+  display: flex; flex-direction: column;
+}
+.layout-split .bottom .main { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.layout-split .bottom .t-lead { margin-top: 54px; color: var(--ink); }
+.layout-split .bottom .t-body { margin-top: 44px; max-width: 1360px; text-indent: 0; }
