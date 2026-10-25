@@ -17,7 +17,7 @@
 
 ## 排版风格示例
 
-全部由本系统渲染，无任何 AI 生成图像：
+全部由本系统渲染，统一 **ivory** 主题（米纸 · 克莱因蓝），无任何 AI 生成图像：
 
 | 封面 | 竖排宣言 | 金句 |
 |:---:|:---:|:---:|
@@ -37,6 +37,42 @@
 - `<~压灰~>` — 降到六成墨色，给自嘲 / 旁白让位
 - `\n` — 硬换行，续行自动空两格对齐
 
+## 配色组
+
+五套纸墨主题（`templates/system.css` 的 `.theme-*`），每套只有三个变量：纸 / 墨 / 唯一强调色：
+
+![](examples/themes.png)
+
+| 主题 | 配色 |
+|---|---|
+| `ivory` | 米纸 · 克莱因蓝 |
+| `bone` | 骨白 · 番茄红 |
+| `kraft` | 淡牛皮 · 赭橘 |
+| `slate` | 冷灰 · 洋红 |
+| `night` | 墨夜 · 朱砂（反白） |
+
+自定义主题用色卡工具调（三个取色器 + 实时对比度检查，`apply` 幂等写回 CSS）：
+
+```bash
+python tools/palette.py build              # → palette.html，浏览器打开
+python tools/palette.py apply themes.json  # 写回 templates/system.css，新主题自动出现在标注页
+```
+
+## 工作流：一次页面完成「选配色 + 划重点」
+
+配色组和重点标记都在**同一个标注页**里完成，不用分开操作：
+
+```bash
+# 1. 生成标注页（内置全部主题的色条，点击切换、实时预览强调色）
+python tools/annotate.py build "content/<文章>/<章节>.json"
+
+# 2. 浏览器打开 annotate.html：
+#    顶栏选配色组 → 划选文字点按钮标记重点 → 导出 marks.json
+
+# 3. 一步写回并出图（配色组写进 meta.theme，标记写回正文）
+python tools/annotate.py apply "content/<文章>/<章节>.json" marks.json --render
+```
+
 ## 使用
 
 ```bash
@@ -51,20 +87,7 @@ python render.py "content/<文章>/<章节>.json" --only 1,3
 python render.py "content/<文章>/<章节>.json" --html-only
 ```
 
-**标注工具**（划重点后回写出图）：
-
-```bash
-python tools/annotate.py build "content/<文章>/<章节>.json"   # 生成可交互标注页 annotate.html
-python tools/annotate.py apply "content/<文章>/<章节>.json" marks.json
-python render.py "content/<文章>/<章节>.json"
-```
-
-**色卡**（浏览器里调纸 / 墨 / 强调三色，实时对比度检查）：
-
-```bash
-python tools/palette.py build              # → palette.html
-python tools/palette.py apply themes.json  # 写回 templates/system.css
-```
+**标注工具**（见上方「工作流」）与**色卡工具**（自定义主题）都在 `tools/`；另有 `tools/swatch.py` 生成五主题色卡总览图（`out/themes.png`）。
 
 ## 目录结构
 
@@ -72,9 +95,10 @@ python tools/palette.py apply themes.json  # 写回 templates/system.css
 render.py               # JSON → HTML → PNG（含竖排手动分列、封面自动降字号、行内强调解析）
 templates/system.css    # 画布 / 八级字号 / 五套纸墨主题 / 七种版式
 content/                # template.json（字段模板）、demo.json（示例）
-tools/annotate.py       # 浏览器标注页：划线→标记→回写 JSON（幂等）
+tools/annotate.py       # 标注页：选配色组 + 划线标记 → apply 一次写回并出图
 tools/palette.py        # 主题色卡：调色→对比度实时检查→写回 CSS
-examples/               # 上面的风格示例图
+tools/swatch.py         # 五主题色卡总览图
+examples/               # 上面的风格示例图（ivory）+ 主题色卡
 SKILL.md                # 完整使用说明 + 全部踩坑记录
 ```
 

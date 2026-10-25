@@ -2,10 +2,11 @@
 """标注工具：把正文拆成可选段，生成一个可以直接在浏览器里划重点的页面。
 
     python tools/annotate.py build "content/<文章>/<章节>.json"
-        → out/<文章>/<章节>/annotate.html   （浏览器打开，选字 → 点按钮，可多选叠加）
+        → out/<文章>/<章节>/annotate.html   （浏览器打开：选配色组 → 选字点按钮，可多选叠加）
 
-    python tools/annotate.py apply "content/<文章>/<章节>.json" [marks.json]
-        把标记写回 JSON。不给 marks.json 时用同目录的 <章节>.suggestions.json。
+    python tools/annotate.py apply "content/<文章>/<章节>.json" [marks.json] [--render]
+        把标记写回 JSON；marks.json 里带 theme 时一并写回 meta.theme。
+        --render：写回后直接调用 render.py 出图，一步到位。
 
 行内语法（render.py 的 accentize 解析，可嵌套）：
     *字*     染色      ^^句^^   放大 2 倍
@@ -138,6 +139,23 @@ def dest_for(src):
     return OUT / rel.parent / src.stem
 
 
+def parse_themes():
+    """从 system.css 读出全部 .theme-* 的 paper/ink/accent（含 palette.py 生成的自定义主题）。"""
+    css = (ROOT / "templates" / "system.css").read_text(encoding="utf-8")
+    themes = {}
+    for m in re.finditer(r"\.theme-([\w-]+)\s*\{([^}]*)\}", css):
+        name, body = m.group(1), m.group(2)
+
+        def var(k):
+            mm = re.search(rf"--{k}:\s*(#[0-9a-fA-F]{{3,6}})", body)
+            return mm.group(1) if mm else "#000000"
+
+        note = re.search(r"/\*\s*(.+?)\s*\*/", body)
+        themes[name] = {"paper": var("paper"), "ink": var("ink"),
+                        "accent": var("accent"), "note": note.group(1) if note else ""}
+    return themes
+
+
 # ─────────────────────────── build ───────────────────────────
 
 PAGE_TPL = """<!DOCTYPE html>
@@ -166,13 +184,17 @@ PAGE_TPL = """<!DOCTYPE html>
     padding:2px 0;border-left:2px solid transparent;padding-left:12px;margin-left:-14px}}
   .para:hover{{border-left-color:#26231f1a}}
   .para::selection, .para *::selection{{background:#c0392b33}}
-  /* 与成图一致的强调样式（可叠加） */
-  .ac{{color:#c0392b;font-style:normal}}
+  # 配色组实时预览：强调色 / 反白块跟随所选主题
+  .ac{{color:var(--pv-accent,#c0392b);font-style:normal}}
   .big{{font-size:1.3em;line-height:1;letter-spacing:-.01em}}
   .wt{{font-weight:500}}
-  .inv{{background:#c0392b;color:#efece5;padding:.02em .15em .05em;box-decoration-break:clone;-webkit-box-decoration-break:clone}}
-  .inv .ac{{color:#efece5}}
+  .inv{{background:var(--pv-accent,#c0392b);color:var(--pv-paper,#efece5);padding:.02em .15em .05em;box-decoration-break:clone;-webkit-box-decoration-break:clone}}
+  .inv .ac{{color:var(--pv-paper,#efece5)}}
   .line{{display:block;font-size:1.36em;line-height:1.72;margin:.24em 0 .2em;letter-spacing:.02em}}
+  #themes{{display:flex;gap:6px;align-items:center;margin-right:4px}}
+  #themes button{{width:26px;height:26px;padding:0;border:1px solid #26231f33;cursor:pointer;position:relative}}
+  #themes button.on{{outline:2px solid #26231f;outline-offset:1px}}
+  #themes button i{{position:absolute;left:3px;right:3px;bottom:3px;height:6px;display:block}}
   aside{{width:340px;flex:none;position:sticky;top:53px;max-height:calc(100vh - 53px);overflow:auto;
     border-left:1px solid #26231f22;padding:22px 20px 60px;background:#f6f4ef}}
   aside h3{{font-family:Consolas,monospace;font-size:11px;letter-spacing:.16em;color:#26231f77;
@@ -204,8 +226,9 @@ PAGE_TPL = """<!DOCTYPE html>
   #pop .tip{{font-size:11px;color:#efece599;padding:7px 4px 0;letter-spacing:.04em}}
 </style></head><body>
 <div class="bar">
-  <b>{title}</b><span class="hint">{chapter} · 选中文字后点按钮，可以同时选多个效果</span>
+  <b>{title}</b><span class="hint">{chapter} · 选配色 → 选中文字点按钮，可多选叠加</span>
   <span class="sp"></span>
+  <span id="themes"></span>
   <button id="export">导出 marks.json</button>
   <button id="copy">复制 JSON</button>
   <button id="reset">重置为建议</button>
@@ -232,6 +255,20 @@ const KEY = "yxl_marks_v2_" + CHAPTER;
 const EFFECTS = {effects_json};
 const FIELD = {field_json};
 const ORDER = ["pull", "line", "block", "bold", "big", "accent"];   // 外 → 内
+const THEMES = {themes_json};
+const CURTHEME = {current_theme_json};
+const TKEY = KEY + "_theme";
+let theme = null;
+function applyTheme(name, persist) {{
+  if (!THEMES[name]) name = Object.keys(THEMES)[0];
+  theme = name;
+  const t = THEMES[name];
+  const r = document.documentElement.style;
+  r.setProperty("--pv-paper", t.paper);
+  r.setProperty("--pv-accent", t.accent);
+  document.querySelectorAll("#themes button").forEach(b => b.classList.toggle("on", b.dataset.t === name));
+  if (persist) {{ try {{ localStorage.setItem(TKEY, name); }} catch (e) {{}} }}
+}}
 const PLAIN = Object.fromEntries(UNITS.map(u => [u.uid, u.plain]));
 
 let marks = [];
@@ -360,7 +397,7 @@ document.getElementById("reset").onclick = () => {{
 }};
 
 function dump() {{
-  return JSON.stringify({{chapter: CHAPTER,
+  return JSON.stringify({{chapter: CHAPTER, theme: theme,
     marks: marks.map(m => ({{uid: m.uid, start: m.start, end: m.end, text: m.text, effects: eff(m)}}))}}, null, 2);
 }}
 
@@ -379,6 +416,18 @@ document.getElementById("copy").onclick = async () => {{
 document.getElementById("doc").innerHTML = UNITS.map(u =>
   '<div class="unit"><div class="h">p' + u.page + " · " + u.label + '</div>' +
   '<p class="para" data-uid="' + u.uid + '"></p></div>').join("");
+
+// 配色组条
+const tbox = document.getElementById("themes");
+tbox.innerHTML = Object.entries(THEMES).map(([n, t]) =>
+  '<button data-t="' + n + '" title="' + t.note + '" style="background:' + t.paper + '">' +
+  '<i style="background:' + t.accent + '"></i></button>').join("");
+tbox.querySelectorAll("button").forEach(b => b.onclick = () => applyTheme(b.dataset.t, true));
+(function () {{
+  let saved = null;
+  try {{ saved = localStorage.getItem(TKEY); }} catch (e) {{}}
+  applyTheme(saved || CURTHEME, false);
+}})();
 
 load(); paintAll();
 </script>
@@ -426,6 +475,7 @@ def cmd_build(src):
 
     depth = len(dest.relative_to(ROOT).parts)
     font = "../" * depth + "assets/NotoSerifSC-VF.ttf"
+    themes = parse_themes()
     html = PAGE_TPL.format(
         title=meta.get("title", "YXL / 1212"),
         chapter=src.stem,
@@ -435,20 +485,33 @@ def cmd_build(src):
         suggest_json=json.dumps(sug, ensure_ascii=False),
         effects_json=json.dumps({k: v[2] for k, v in EFFECTS.items()}, ensure_ascii=False),
         field_json=json.dumps(FIELD, ensure_ascii=False),
+        themes_json=json.dumps(themes, ensure_ascii=False),
+        current_theme_json=json.dumps(meta.get("theme", "ivory"), ensure_ascii=False),
     )
     p = dest / "annotate.html"
     p.write_text(html, encoding="utf-8")
-    print(f"  annotate.html  ({len(units)} 段, {len(sug)} 条建议)  ← {p.relative_to(ROOT)}")
+    print(f"  annotate.html  ({len(units)} 段, {len(sug)} 条建议, {len(themes)} 套配色)  ← {p.relative_to(ROOT)}")
 
 
 # ─────────────────────────── apply ───────────────────────────
 
-def cmd_apply(src, marks_path=None):
+def cmd_apply(src, marks_path=None, do_render=False):
     doc = json.loads(src.read_text(encoding="utf-8"))
     if marks_path is None:
-        raw = json.loads(src.with_suffix(".suggestions.json").read_text(encoding="utf-8"))["marks"]
+        data = json.loads(src.with_suffix(".suggestions.json").read_text(encoding="utf-8-sig"))
     else:
-        raw = json.loads(Path(marks_path).read_text(encoding="utf-8"))["marks"]
+        data = json.loads(Path(marks_path).read_text(encoding="utf-8-sig"))
+    raw = data["marks"]
+
+    # 配色组随 marks.json 一起写回（标注页选过的主题）
+    theme = data.get("theme")
+    if theme:
+        cur = doc.get("meta", {}).get("theme")
+        if theme != cur:
+            doc.setdefault("meta", {})["theme"] = theme
+            print(f"  配色组：{cur} → {theme}")
+        else:
+            print(f"  配色组不变：{theme}")
 
     by_uid = {}
     for m in raw:
@@ -483,6 +546,11 @@ def cmd_apply(src, marks_path=None):
     src.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"  已写回 {n} 条标记 → {src.name}")
 
+    if do_render:
+        import subprocess
+        r = subprocess.run([sys.executable, str(ROOT / "render.py"), str(src)])
+        raise SystemExit(r.returncode)
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
@@ -491,6 +559,9 @@ if __name__ == "__main__":
     if cmd == "build":
         cmd_build(target)
     elif cmd == "apply":
-        cmd_apply(target, sys.argv[3] if len(sys.argv) > 3 else None)
+        args = sys.argv[3:]
+        do_render = "--render" in args
+        args = [a for a in args if a != "--render"]
+        cmd_apply(target, args[0] if args else None, do_render)
     else:
         raise SystemExit(__doc__)
